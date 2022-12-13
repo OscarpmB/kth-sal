@@ -1,31 +1,19 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
+// const { each } = require('cheerio/lib/api/traversing');
 const pretty = require('pretty');
 
-
-
-function scrape(url, date){
-    
-    axios.get(url)
-        .then(res => {
-            const $ = cheerio.load(res.data);
-            $('div[data-dates='+date+']').each((index, element) =>{
-
-                const times = $(element).find('.timeDiv');
-
-                console.log(times.text())
-                console.log(times.text().length)
-                const t = []
-                // for(let i = 0; i*5 < times.text().length; i++){
-                //     t[i] = times.substr(i*5, 5);
-                // }
-                // console.log(t.toString());
-            })
-        }).catch(err => console.error(err));
-
+const urls = {
+    "e34": "https://cloud.timeedit.net/kth/web/public01/ri152XQQ093Z50Qv17067gZ6y7Y7403Y8YQ1.html",
+    "e33": "https://cloud.timeedit.net/kth/web/public01/ri152XQQ093Z50Qv17067gZ6y7Y7401Y8YQ1.html",
+    "e31": "https://cloud.timeedit.net/kth/web/public01/ri152XQQ093Z50Qv17067gZ6y7Y7404Y8YQ1.html"
 }
 
-async function scraping(url, date){
+const eRooms = ["e32","e33","e31"];
+
+const hours = [8,9,10,11,12,13,14,15,16,17]
+
+async function getTimes(url, date){
     const times = [];
     try{
         const res = await axios.get(url);
@@ -42,14 +30,57 @@ async function scraping(url, date){
     }catch ( err){
         console.log(err);
     }
-    for(let i = 0; i < times.length; i++){
-        console.log(times[i]);
-    }
-
+    return times;
 }
 
-let url = 'https://cloud.timeedit.net/kth/web/public01/ri152XQQ093Z50Qv17067gZ6y7Y7401Y8YQ1.html';
-let date = '20221213'
+function parseHour(time){
+    var hour = time.substr(0,2);
+    if(hour.charAt(0) == '0'){
+        hour = hour.substr(1,1);
+    }
+    return hour;
+}
 
-// scrape(url, date)
-scraping(url, date)
+function calcAvailability(booked){
+    var hours = [];
+    for(var i = 8; i <=17 ; i++){
+        hours[i-8] = true;
+    }
+    for(var i = 0; i < booked.length; i=i+2){
+        // console.log("booked[i]="+booked[i] + " booked[i+1]= " + booked[i+1])
+        var start = parseHour(booked[i]);
+        var end = parseHour(booked[i+1]);
+        // console.log(start + " - " + end)
+        for(var i = parseInt(start); i <= parseInt(end); i++){
+            hours[i-8] = false;
+        }
+    }
+    return hours;
+}
+
+async function findAvailable(){
+    // Get todays date
+    var today = new Date();
+    var dd = String(today.getDate()).padStart(2, "0");
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var yyyy = today.getFullYear();
+    date = yyyy+mm+dd;
+    console.log(date);
+    var rooms = [] 
+    // var obj = {};
+    for(var key in urls ){
+        console.log(key + ": " + urls[key]);
+        var unavailable = await getTimes(urls[key], date);
+        var available = calcAvailability(unavailable)
+        // available.forEach(e => {console.log(e)});
+        var obj = Object.assign(...hours.map((h, i) => ({[h]: available[i]})))
+        // console.log(obj);
+        rooms.push(obj)
+    }
+    // rooms.forEach(e => { console.log(e)} )
+    var availability = Object.assign(...eRooms.map((r,i) => ({[r]: rooms[i]})))
+    console.log(x)
+    return availability;
+} 
+
+findAvailable();
