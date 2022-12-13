@@ -219,5 +219,3 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-package-lock.json
-package.json
