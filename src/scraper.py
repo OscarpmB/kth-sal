@@ -22,6 +22,7 @@ class scraper():
         r = requests.get(URL)
         ## Fetch the information about bokings that day
         soup = BeautifulSoup(r.content, 'html.parser').find('div', attrs={'class':'weekDiv', 'data-dates':date})
+        print(soup.prettify())
         times = []
         for booking in soup.find_all('div', attrs={'class':'timeDiv'}):
             times.append(booking.text)
@@ -40,9 +41,10 @@ class scraper():
 
 def main():
     s = scraper()
+    # e33 = "https://cloud.timeedit.net/kth/web/public01/ri152XQQ093Z50Qv17067gZ6y7Y7401Y8YQ1.html"
     e33 = "https://cloud.timeedit.net/kth/web/public01/ri152XQQ093Z50Qv17067gZ6y7Y7401Y8YQ1.html"
     v34 = "https://cloud.timeedit.net/kth/web/public01/ri152XQQ093Z50Qv77077gZ6y7Y7404Y8YQ1.html"
-    date = "20221205"
+    date = "20221213"
     s.get_bookings(e33, date)
     s.get_bookings(v34, date)
 
